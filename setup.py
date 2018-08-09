@@ -10,7 +10,6 @@ CLASSIFIERS = [
     'License :: OSI Approved :: BSD License',
     'Operating System :: OS Independent',
     'Programming Language :: Python',
-    'Programming Language :: Python :: 3.4',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
     'Topic :: Internet :: WWW/HTTP',
@@ -19,17 +18,16 @@ CLASSIFIERS = [
     'Topic :: Software Development :: Libraries :: Python Modules']
 
 setup(
-    name='django-prices-vatlayer',
-    author='Mirumee Software',
-    author_email='hello@mirumee.com',
-    description='vatlayer.com support for django',
+    name='django-prices-taxjar',
+    author='7222C',
+    description='taxjar.com support for django',
     license='BSD',
-    version='1.0.1',
-    url='https://github.com/mirumee/django-prices-vatlayer',
+    version='0.0.1',
+    url='https://github.com/722C/django-prices-taxjar',
     packages=[
-        'django_prices_vatlayer', 'django_prices_vatlayer.migrations',
-        'django_prices_vatlayer.management',
-        'django_prices_vatlayer.management.commands'],
+        'django_prices_taxjar', 'django_prices_taxjar.migrations',
+        'django_prices_taxjar.management',
+        'django_prices_taxjar.management.commands'],
     include_package_data=True,
     classifiers=CLASSIFIERS,
     install_requires=[

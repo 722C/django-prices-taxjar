@@ -9,4 +9,4 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'database.sqlite'}}
 
-VATLAYER_ACCESS_KEY = os.environ.get('VATLAYER_ACCESS_KEY', '')
+TAXJAR_ACCESS_KEY = os.environ.get('TAXJAR_ACCESS_KEY', '')
