@@ -246,7 +246,7 @@ def is_shipping_taxable_for_address(postal_code: str, country_code: str=None,
 def get_taxes_for_order(shipping_cost: Money, country_code: str,
                         postal_code: str=None, region_code: str=None,
                         city: str=None, street: str=None, amount: Money=None,
-                        line_items: Collection[LineItem]=None):
+                        line_items: Iterable[LineItem]=None):
     """
     Get the tax for an individual order.
 
