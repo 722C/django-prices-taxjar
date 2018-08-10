@@ -34,8 +34,8 @@ CACHE_TIME = getattr(settings, 'TAXJAR_CACHE_TTL', 60 * 60)
 
 
 def validate_data(json_data):
-    if not json_data['success']:
-        info = json_data['error']['info']
+    if json_data.get('error', None):
+        info = json_data['error']
         raise ImproperlyConfigured(info)
 
 
@@ -56,7 +56,7 @@ def fetch_tax_rates():
 
 def fetch_tax_for_address(postal_code, address_data):
     return fetch_from_api(
-        RATES_LOCATION_URL.format({'postal_code': postal_code}),
+        RATES_LOCATION_URL.format(postal_code=postal_code),
         additional_data=address_data)
 
 
@@ -70,7 +70,7 @@ def save_tax_categories(json_data):
 
     categories = json_data['categories']
     TaxCategories.objects.update_or_create(
-        id=DEFAULT_TYPES_INSTANCE_ID, defaults={'categories': categories})
+        id=DEFAULT_TYPES_INSTANCE_ID, defaults={'types': categories})
 
 
 def create_objects_from_json(json_data):
@@ -100,8 +100,8 @@ def create_objects_from_json(json_data):
         cache.set(country_region_cache_key, rate, CACHE_TIME)
 
 
-def get_tax_rates_for_region(country_code: str, region_code=None: str,
-                             force_refresh=False: bool):
+def get_tax_rates_for_region(country_code: str, region_code: str=None,
+                             force_refresh: bool=False):
     """
     Get the tax rates for a given region.
 
@@ -168,9 +168,9 @@ def get_tax_categories():
     return categories.types if categories else []
 
 
-def get_tax_for_address(postal_code: str, country_code=None: str,
-                        region_code=None: str, city=None: str,
-                        street=None: str):
+def get_tax_for_address(postal_code: str, country_code: str=None,
+                        region_code: str=None, city: str=None,
+                        street: str=None, force_refresh: bool=False):
     """
     Get the tax rate for a given address.
 
@@ -181,9 +181,10 @@ def get_tax_for_address(postal_code: str, country_code=None: str,
     address_cache_key = INDIVIDUAL_CACHE_KEY + postal_code + \
         (country_code or '') + (region_code or '') + \
         (city or '') + (street or '')
+    address_cache_key = address_cache_key.replace(' ', '_')
 
     rates = cache.get(address_cache_key)
-    if not tax_rates or force_refresh:
+    if not rates or force_refresh:
         additional_data = {}
         if country_code:
             additional_data['country'] = country_code
@@ -208,9 +209,9 @@ def get_tax_for_address(postal_code: str, country_code=None: str,
     return tax
 
 
-def is_shipping_taxable_for_address(postal_code: str, country_code=None: str,
-                                    region_code=None: str, city=None: str,
-                                    street=None: str):
+def is_shipping_taxable_for_address(postal_code: str, country_code: str=None,
+                                    region_code: str=None, city: str=None,
+                                    street: str=None, force_refresh: bool=False):
     """
     Get the tax rate for a given address.
 
@@ -221,9 +222,10 @@ def is_shipping_taxable_for_address(postal_code: str, country_code=None: str,
     address_cache_key = INDIVIDUAL_CACHE_KEY + postal_code + \
         (country_code or '') + (region_code or '') + \
         (city or '') + (street or '')
+    address_cache_key = address_cache_key.replace(' ', '_')
 
     rates = cache.get(address_cache_key)
-    if not tax_rates or force_refresh:
+    if not rates or force_refresh:
         additional_data = {}
         if country_code:
             additional_data['country'] = country_code
@@ -242,9 +244,9 @@ def is_shipping_taxable_for_address(postal_code: str, country_code=None: str,
 
 
 def get_taxes_for_order(shipping_cost: Money, country_code: str,
-                        postal_code=None: str, region_code=None: str,
-                        city=None: str, street=None: str, amount=None: Money,
-                        line_items=None: Collection[LineItem]):
+                        postal_code: str=None, region_code: str=None,
+                        city: str=None, street: str=None, amount: Money=None,
+                        line_items: Collection[LineItem]=None):
     """
     Get the tax for an individual order.
 
@@ -265,7 +267,7 @@ def get_taxes_for_order(shipping_cost: Money, country_code: str,
 
     data = {
         "to_country": country_code,
-        "shipping": shipping_cost.value,
+        "shipping": shipping_cost.amount,
     }
 
     if postal_code:
@@ -280,7 +282,7 @@ def get_taxes_for_order(shipping_cost: Money, country_code: str,
         data['line_items'] = list(
             map(lambda item: item.dictionary, line_items))
     elif amount:
-        data['amount'] = amount.value
+        data['amount'] = amount.amount
 
     response = fetch_tax_for_order(data)
 

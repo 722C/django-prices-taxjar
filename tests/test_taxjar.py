@@ -6,6 +6,9 @@ from django_prices_taxjar.models import Tax, TaxCategories
 from prices import Money, TaxedMoney
 
 
+from django_prices_taxjar import LineItem
+
+
 @pytest.fixture
 def tax_country(db, json_success):
     data = json_success['summary_rates'][0]
@@ -48,9 +51,15 @@ def fetch_categories_error(monkeypatch, json_error):
 
 
 @pytest.fixture
-def fetch_tax_rate_for_address_success(monkeypatch, json_success_for_address)
-    monkeypatch.setattr(utils, 'fetch_success_for_address',
-                        lambda: json_success_for_address)
+def fetch_tax_rate_for_address_success(monkeypatch, json_success_for_address):
+    monkeypatch.setattr(utils, 'fetch_tax_for_address',
+                        lambda *args, **kwargs: json_success_for_address)
+
+
+@pytest.fixture
+def fetch_tax_rate_for_order_success(monkeypatch, json_success_for_order):
+    monkeypatch.setattr(utils, 'fetch_tax_for_order',
+                        lambda *args, **kwargs: json_success_for_order)
 
 
 def test_validate_data_invalid(json_error):
@@ -113,7 +122,7 @@ def test_get_tax_rates_for_country_region(tax_country):
 
 @pytest.mark.django_db
 def test_get_tax_rates_for_country_invalid_code():
-    tax_rates = utils.get_tax_rates_for_country('XX')
+    tax_rates = utils.get_tax_rates_for_region('XX')
     assert tax_rates is None
 
 
@@ -142,7 +151,7 @@ def test_get_tax_for_rate_standard_rate(tax_country):
     assert standard_tax(taxed_money) == TaxedMoney(
         net=Money(100, 'USD'), gross=Money('108.27', 'USD'))
     assert standard_tax(taxed_money, keep_gross=True) == TaxedMoney(
-        net=Money('93.36', 'USD'), gross=Money(100, 'USD'))
+        net=Money('92.36', 'USD'), gross=Money(100, 'USD'))
 
 
 def test_get_tax_for_rate_fallback_to_standard_rate(tax_country):
@@ -158,7 +167,7 @@ def test_get_tax_for_rate_fallback_to_standard_rate(tax_country):
     assert hotels_tax(taxed_money) == TaxedMoney(
         net=Money(100, 'USD'), gross=Money('108.27', 'USD'))
     assert hotels_tax(taxed_money, keep_gross=True) == TaxedMoney(
-        net=Money('93.36', 'USD'), gross=Money(100, 'USD'))
+        net=Money('92.36', 'USD'), gross=Money(100, 'USD'))
 
 
 def test_get_tax_for_rate_reduced_rate(tax_country):
@@ -174,10 +183,10 @@ def test_get_tax_for_rate_reduced_rate(tax_country):
     assert books_tax(taxed_money) == TaxedMoney(
         net=Money(100, 'USD'), gross=Money('108.27', 'USD'))
     assert books_tax(taxed_money, keep_gross=True) == TaxedMoney(
-        net=Money('93.36', 'USD'), gross=Money(100, 'USD'))
+        net=Money('92.36', 'USD'), gross=Money(100, 'USD'))
 
 
-def test_get_tax_for_address():
+def test_get_tax_for_address(fetch_tax_rate_for_address_success):
     tax_for_address = utils.get_tax_for_address(
         '05495-2086', 'US', 'VT', 'Williston', '312 Hurricane Lane')
 
@@ -193,13 +202,13 @@ def test_get_tax_for_address():
         net=Money('93.46', 'USD'), gross=Money(100, 'USD'))
 
 
-def test_get_shipping_taxable_for_address():
+def test_get_shipping_taxable_for_address(fetch_tax_rate_for_address_success):
     shipping_taxable_for_address = utils.is_shipping_taxable_for_address(
         '05495-2086', 'US', 'VT', 'Williston', '312 Hurricane Lane')
     assert shipping_taxable_for_address == True
 
 
-def test_get_taxes_for_order():
+def test_get_taxes_for_order(fetch_tax_rate_for_order_success):
     tax_for_order = utils.get_taxes_for_order(
         Money('1.5', 'USD'), 'US', '90002', 'CA', 'Los Angeles',
         '1335 E 103rd St', None,
@@ -207,7 +216,7 @@ def test_get_taxes_for_order():
             LineItem('1', 1, Money(15, 'USD'), '20010')
         ]
     )
-    assert tax_for_order(Money(100, 'USD')) == TaxedMoney(
+    assert tax_for_order(Money(15, 'USD')) == TaxedMoney(
         net=Money(15, 'USD'), gross=Money('16.35', 'USD'))
     assert tax_for_order(Money(15, 'USD'), keep_gross=True) == TaxedMoney(
         net=Money('13.65', 'USD'), gross=Money(15, 'USD'))

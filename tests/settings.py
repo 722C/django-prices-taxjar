@@ -2,7 +2,7 @@ import os
 
 SECRET_KEY = 'irrelevant'
 
-INSTALLED_APPS = ['django_prices_vatlayer']
+INSTALLED_APPS = ['django_prices_taxjar']
 
 DATABASES = {
     'default': {

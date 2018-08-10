@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Union
 
 from django.conf import settings
@@ -14,7 +15,7 @@ class LineItem(object):
     """Helper object for unifying input for order based taxes."""
 
     def __init__(self, id: str, quantity: int, unit_price: Money,
-                 product_tax_code=None: str, discount=None: Money):
+                 product_tax_code: str=None, discount: Money=None):
         self.id = id
         self.quantity = quantity
         self.unit_price = unit_price
@@ -26,10 +27,10 @@ class LineItem(object):
         return {
             'id': self.id,
             'quantity': self.quantity,
-            'unit_price': self.unit_price.value
+            'unit_price': self.unit_price.amount,
             'product_tax_code': (self.product_tax_code or
                                  DEFAULT_TAXJAR_PRODUCT_TAX_CODE),
-            'discount': self.discount.value if self.discount else 0
+            'discount': self.discount.amount if self.discount else 0
         }
 
 
@@ -38,11 +39,19 @@ def tax_amount(base: Union[Money, TaxedMoney], amount: Decimal, *,
     """
     Apply a tax of an amount by increasing gross or decreasing net amount.
 
-    This only works on Money or TaxedMony and not MoneyRanges
+    This only works on Money or TaxedMoney and not MoneyRanges
     """
-    if keep_gross:
-        net = base - Money(amount, base.currency).quantize()
-        return TaxedMoney(net=net, gross=base)
-    else:
-        gross = base + Money(amount, base.currency).quantize()
-        return TaxedMoney(net=base, gross=gross)
+    if isinstance(base, TaxedMoney):
+        if keep_gross:
+            net = base.net - Money(amount, base.currency).quantize()
+            return TaxedMoney(net=net, gross=base.gross)
+        else:
+            gross = base.gross + Money(amount, base.currency).quantize()
+            return TaxedMoney(net=base.net, gross=gross)
+    elif isinstance(base, Money):
+        if keep_gross:
+            net = base - Money(amount, base.currency).quantize()
+            return TaxedMoney(net=net, gross=base)
+        else:
+            gross = base + Money(amount, base.currency).quantize()
+            return TaxedMoney(net=base, gross=gross)
