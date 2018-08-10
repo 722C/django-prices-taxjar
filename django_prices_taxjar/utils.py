@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from collections.abc import Collection
+from typing import Iterable
 
 import requests
 from django.conf import settings
