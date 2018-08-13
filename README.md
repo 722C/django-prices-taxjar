@@ -33,7 +33,7 @@ print(price_with_tax)
 The package can easily be installed via pip:
 
 ```
-pip install django-prices-taxjar
+pip install git+git://github.com/722C/django-prices-taxjar.git#egg=django_prices_taxjar
 ```
 
 After installation, you'll also need to setup your site to use it. To do that, open your `settings.py` and do the following:
