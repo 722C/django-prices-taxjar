@@ -39,30 +39,34 @@ def validate_data(json_data):
         raise ImproperlyConfigured(info)
 
 
-def fetch_from_api(url, additional_data=None):
+def fetch_from_api(url, method, additional_data=None):
     url = TAXJAR_API + url
-    response = requests.get(
-        url, params={'access_key': ACCESS_KEY}, data=additional_data)
+    headers = {
+        'Authorization': 'Token token="{}"'.format(ACCESS_KEY)
+    }
+    response = method(
+        url, headers=headers, data=additional_data)
     return response.json()
 
 
 def fetch_categories():
-    return fetch_from_api(TYPES_URL)
+    return fetch_from_api(TYPES_URL, requests.get)
 
 
 def fetch_tax_rates():
-    return fetch_from_api(RATES_URL)
+    return fetch_from_api(RATES_URL, requests.get)
 
 
 def fetch_tax_for_address(postal_code, address_data):
     return fetch_from_api(
         RATES_LOCATION_URL.format(postal_code=postal_code),
+        requests.get,
         additional_data=address_data)
 
 
 def fetch_tax_for_order(order_data):
     return fetch_from_api(
-        ORDER_TAXES_URL, additional_data=order_data)
+        ORDER_TAXES_URL, requests.post, additional_data=order_data)
 
 
 def save_tax_categories(json_data):
