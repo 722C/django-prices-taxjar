@@ -58,15 +58,19 @@ def fetch_tax_rates():
 
 
 def fetch_tax_for_address(postal_code, address_data):
-    return validate_data(fetch_from_api(
+    data = fetch_from_api(
         RATES_LOCATION_URL.format(postal_code=postal_code),
         requests.get,
-        params=address_data))
+        params=address_data)
+    validate_data(data)
+    return data
 
 
 def fetch_tax_for_order(order_data):
-    return validate_data(fetch_from_api(
-        ORDER_TAXES_URL, requests.post, json=order_data))
+    data = fetch_from_api(
+        ORDER_TAXES_URL, requests.post, json=order_data)
+    validate_data(data)
+    return data
 
 
 def save_tax_categories(json_data):
