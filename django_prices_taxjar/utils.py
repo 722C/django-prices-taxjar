@@ -271,7 +271,7 @@ def get_taxes_for_order(shipping_cost: Money, country_code: str,
 
     data = {
         "to_country": country_code,
-        "shipping": shipping_cost.amount,
+        "shipping": str(shipping_cost.amount),
     }
 
     if postal_code:
@@ -286,7 +286,7 @@ def get_taxes_for_order(shipping_cost: Money, country_code: str,
         data['line_items'] = list(
             map(lambda item: item.dictionary, line_items))
     elif amount:
-        data['amount'] = amount.amount
+        data['amount'] = str(amount.amount)
 
     response = fetch_tax_for_order(data)
 

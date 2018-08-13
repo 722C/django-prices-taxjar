@@ -27,10 +27,10 @@ class LineItem(object):
         return {
             'id': self.id,
             'quantity': self.quantity,
-            'unit_price': self.unit_price.amount,
+            'unit_price': str(self.unit_price.amount),
             'product_tax_code': (self.product_tax_code or
                                  DEFAULT_TAXJAR_PRODUCT_TAX_CODE),
-            'discount': self.discount.amount if self.discount else 0
+            'discount': str(self.discount.amount) if self.discount else 0
         }
 
 
