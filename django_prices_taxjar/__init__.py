@@ -8,7 +8,8 @@ from prices import Money, TaxedMoney
 try:
     DEFAULT_TAXJAR_PRODUCT_TAX_CODE = settings.DEFAULT_TAXJAR_PRODUCT_TAX_CODE
 except AttributeError:
-    DEFAULT_TAXJAR_PRODUCT_TAX_CODE = '99999'
+    # Use blank, as it will default to a nonspecific value.
+    DEFAULT_TAXJAR_PRODUCT_TAX_CODE = ''
 
 
 class LineItem(object):
